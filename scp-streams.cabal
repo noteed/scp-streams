@@ -1,0 +1,27 @@
+name:                scp-streams
+version:             0.0.0
+Cabal-Version:       >= 1.8
+synopsis:            AN SCP protocol implementation.
+description:         An SCP protocol implementation.
+category:            System
+license:             BSD3
+license-file:        LICENSE
+author:              Vo Minh Thu
+maintainer:          thu@hypered.io
+build-type:          Simple
+
+library
+  build-depends:       base == 4.*,
+                       bytestring == 0.9.*
+  exposed-modules:     Network.SCP.Types
+  ghc-options:         -Wall
+
+executable scp-streams
+  hs-source-dirs:      bin
+  main-is:             scp-streams.hs
+  build-depends:       base == 4.*,
+                       bytestring == 0.9.*,
+                       io-streams == 1.1.*,
+                       process == 1.1.*,
+                       scp-streams
+  ghc-options:         -Wall
