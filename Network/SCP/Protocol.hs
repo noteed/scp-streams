@@ -22,9 +22,14 @@ data SCP = SCP
   , scpProcess :: ProcessHandle
   }
 
-start :: IO SCP
-start = do
-  (inp, out, err, h) <- S.runInteractiveProcess "scp" ["-t", "/tmp/a"] Nothing Nothing
+----------------------------------------------------------------------
+-- "Mid-level" interface
+----------------------------------------------------------------------
+
+start :: FilePath -> IO SCP
+start target = do
+  (inp, out, err, h) <-
+    S.runInteractiveProcess "scp" ["-t", target] Nothing Nothing
   let scp = SCP inp out err h
   _ <- startSending scp
   return scp
@@ -40,6 +45,10 @@ copy scp a b c d len filename =
 
 send :: SCP -> InputStream ByteString -> IO Bool
 send = sendContent
+
+----------------------------------------------------------------------
+-- "Low-level" interface
+----------------------------------------------------------------------
 
 startSending :: SCP -> IO Bool
 startSending SCP{..} = do

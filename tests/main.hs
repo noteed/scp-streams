@@ -8,7 +8,7 @@ import Network.SCP.Protocol
 
 main :: IO ()
 main = do
-  scp <- start
+  scp <- start "/tmp/a"
   _ <- copy scp 0 7 5 5 1 "a"
   _ <- S.fromByteString "A" >>= send scp
   _ <- stop scp

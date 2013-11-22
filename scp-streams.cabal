@@ -30,7 +30,11 @@ executable scp-streams
   build-depends:       cmdargs == 0.9.*,
                        base == 4.*,
                        bytestring == 0.9.*,
-                       scp-streams
+                       io-streams == 1.1.*,
+                       scp-streams,
+                       SHA == 1.6.*,
+                       sha-streams,
+                       unix == 2.5.*
   ghc-options:         -Wall
 
 test-suite run-tests
