@@ -1,7 +1,7 @@
 name:                scp-streams
 version:             0.0.0
 Cabal-Version:       >= 1.8
-synopsis:            AN SCP protocol implementation.
+synopsis:            An SCP protocol implementation.
 description:         An SCP protocol implementation.
 category:            System
 license:             BSD3
