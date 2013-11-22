@@ -38,5 +38,7 @@ test-suite run-tests
   main-is: main.hs
   type: exitcode-stdio-1.0
   build-depends:       base == 4.*,
+                       bytestring == 0.9.*,
+                       io-streams == 1.1.*,
                        scp-streams
   ghc-options:         -Wall

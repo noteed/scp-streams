@@ -38,7 +38,7 @@ copy :: SCP -> Word8 -> Word8 -> Word8 -> Word8 -> Int -> ByteString -> IO Bool
 copy scp a b c d len filename =
   sendCommand scp $ Copy a b c d len filename
 
-send :: SCP -> ByteString -> IO Bool
+send :: SCP -> InputStream ByteString -> IO Bool
 send = sendContent
 
 startSending :: SCP -> IO Bool
@@ -53,10 +53,10 @@ sendCommand SCP{..} command = do
   S.write (Just "") scpIn
   getFeedback scpOut
 
-sendContent :: SCP -> ByteString -> IO Bool
+sendContent :: SCP -> InputStream ByteString -> IO Bool
 sendContent SCP{..} content = do
   putStrLn "Sending content..."
-  S.writeLazyByteString (L.fromChunks [content]) scpIn
+  S.supply content scpIn
   confirm scpIn
   S.write (Just "") scpIn
   getFeedback scpOut
