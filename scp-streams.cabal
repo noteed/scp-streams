@@ -19,7 +19,8 @@ library
 executable scp-streams
   hs-source-dirs:      bin
   main-is:             scp-streams.hs
-  build-depends:       base == 4.*,
+  build-depends:       cmdargs == 0.9.*,
+                       base == 4.*,
                        bytestring == 0.9.*,
                        io-streams == 1.1.*,
                        process == 1.1.*,

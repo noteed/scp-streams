@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 module Main (main) where
@@ -6,6 +7,9 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString.Lazy as L
+import Data.Version (showVersion)
+import Paths_scp_streams (version)
+import System.Console.CmdArgs.Implicit
 import System.Exit (ExitCode)
 import System.IO.Streams (InputStream, OutputStream)
 import qualified System.IO.Streams as S
@@ -15,7 +19,33 @@ import qualified System.Process as P
 import Network.SCP.Types
 
 main :: IO ()
-main = do
+main = (runCmd =<<) $ cmdArgs $
+  modes
+    [ cmdScp
+    ]
+  &= summary versionString
+  &= program "scp-streams"
+
+-- | String with the program name, version and copyright.
+versionString :: String
+versionString =
+  "scp-streams " ++ showVersion version ++ " - Copyright (c) 2013 Vo Minh Thu."
+
+-- | Data type representing the different command-line subcommands.
+data Cmd =
+    CmdScp
+  deriving (Data, Typeable)
+
+-- | Create the (default) 'Scp' command.
+cmdScp :: Cmd
+cmdScp = CmdScp
+    &= help "Drop-in `scp` replacement."
+    &= explicit
+    &= name "scp"
+
+-- | Run a sub-command.
+runCmd :: Cmd -> IO ()
+runCmd CmdScp{..} = do
   (inp, out, err, h) <- S.runInteractiveProcess "scp" ["-t", "/tmp/a"] Nothing Nothing
   let scp = SCP inp out err h
   _ <- startSending scp
