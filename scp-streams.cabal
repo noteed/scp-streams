@@ -9,11 +9,19 @@ license-file:        LICENSE
 author:              Vo Minh Thu
 maintainer:          thu@hypered.io
 build-type:          Simple
+homepage:            https://github.com/noteed/scp-streams
+
+source-repository head
+  type: git
+  location: git://github.com/noteed/scp-streams.git
 
 library
   build-depends:       base == 4.*,
-                       bytestring == 0.9.*
-  exposed-modules:     Network.SCP.Types
+                       bytestring == 0.9.*,
+                       io-streams == 1.1.*,
+                       process == 1.1.*
+  exposed-modules:     Network.SCP.Protocol,
+                       Network.SCP.Types
   ghc-options:         -Wall
 
 executable scp-streams
@@ -22,7 +30,13 @@ executable scp-streams
   build-depends:       cmdargs == 0.9.*,
                        base == 4.*,
                        bytestring == 0.9.*,
-                       io-streams == 1.1.*,
-                       process == 1.1.*,
+                       scp-streams
+  ghc-options:         -Wall
+
+test-suite run-tests
+  hs-source-dirs: tests
+  main-is: main.hs
+  type: exitcode-stdio-1.0
+  build-depends:       base == 4.*,
                        scp-streams
   ghc-options:         -Wall
