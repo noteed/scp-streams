@@ -98,7 +98,6 @@ readCommand :: SCP -> IO Command
 readCommand SCP{..} = do
   command <- S.parseFromStream commandParser scpOut
   confirm scpIn
-  S.write (Just "") scpIn
   return command
 
 contentAsInputStream :: SCP -> Int -> IO (InputStream ByteString)
@@ -106,8 +105,7 @@ contentAsInputStream SCP{..} len = do
   is <- S.takeBytes (fromIntegral len) scpOut
   is' <- S.atEndOfInput (do
     _ <- getFeedback scpOut
-    confirm scpIn
-    S.write (Just "") scpIn) is
+    confirm scpIn) is
   return is'
 
 doneReceiving :: SCP -> IO Bool
@@ -133,7 +131,7 @@ sendCommand SCP{..} command = do
   let c = unparse command
   hPutStrLn stderr ("Sending command " ++ C.unpack c) >> hFlush stderr
   S.writeLazyByteString (L.fromChunks [c, "\n"]) scpIn
-  S.write (Just "") scpIn
+  S.write (Just "") scpIn -- flush
   getFeedback scpOut
 
 sendContent :: SCP -> InputStream ByteString -> IO Bool
@@ -141,7 +139,6 @@ sendContent SCP{..} content = do
   hPutStrLn stderr "Sending content..." >> hFlush stderr
   S.supply content scpIn
   confirm scpIn
-  S.write (Just "") scpIn
   b <- getFeedback scpOut
   return b
 
@@ -158,7 +155,6 @@ receiveProcess cmd args = do
 startReceiving :: SCP -> IO ()
 startReceiving SCP{..} = do
   confirm scpIn
-  S.write (Just "") scpIn
 
 getFeedback :: InputStream ByteString -> IO Bool
 getFeedback feedback = do
@@ -171,10 +167,14 @@ getFeedback feedback = do
       return False
 
 confirm :: OutputStream ByteString -> IO ()
-confirm os = S.writeLazyByteString "\0" os
+confirm os = do
+  S.writeLazyByteString "\0" os
+  S.write (Just "") os -- flush
 
 whine :: OutputStream ByteString -> ByteString -> IO ()
-whine os msg = S.writeLazyByteString (L.fromChunks ["\x01", msg, "\n"]) os
+whine os msg = do
+  S.writeLazyByteString (L.fromChunks ["\x01", msg, "\n"]) os
+  S.write (Just "") os -- flush
 
 sGetLine :: InputStream ByteString -> IO ByteString
 sGetLine is = do
