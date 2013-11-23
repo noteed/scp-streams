@@ -8,7 +8,7 @@ import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString.Lazy as L
 import Data.Word (Word8)
 import System.Exit (ExitCode(..))
-import System.IO (hClose)
+import System.IO (hClose, hFlush, hPutStrLn, stderr)
 import System.IO.Streams (InputStream, OutputStream)
 import qualified System.IO.Streams as S
 import qualified System.IO.Streams.Attoparsec as S
@@ -28,14 +28,32 @@ data SCP = SCP
 -- "Mid-level" interface
 ----------------------------------------------------------------------
 
-sendSsh :: FilePath -> IO SCP
-sendSsh target = error "TODO"
+sendSsh :: String -> String -> FilePath -> IO SCP
+sendSsh user host target = sendProcess "ssh"
+  [ "-q"
+  -- TODO actually use known_hosts and key check.
+  , "-o", "UserKnownHostsFile=/dev/null"
+  , "-o", "StrictHostKeyChecking=no"
+  , "-i", "/home/scp/.ssh/insecure_id_rsa"
+  , user ++ "@" ++ host
+  , "scp"
+  , "-r" -- TODO Only when pushing directories.
+         -- TODO Error out when receiving directories without -r.
+  , "-t"
+  , target
+  ]
+
+sendStd :: IO SCP
+sendStd = do
+  let scp = SCP S.stdout S.stdin Nothing
+  _ <- startSending scp
+  return scp
 
 sendSelf :: FilePath -> IO SCP
-sendSelf target = startProcess "dist/build/scp-streams/scp-streams" ["-t", target]
+sendSelf target = sendProcess "dist/build/scp-streams/scp-streams" ["-t", target]
 
 sendDirect :: FilePath -> IO SCP
-sendDirect target = startProcess "scp" ["-t", target]
+sendDirect target = sendProcess "scp" ["-t", target]
 
 stop :: SCP -> IO ExitCode
 stop scp@SCP{..} = do
@@ -48,10 +66,33 @@ copy scp a b c d len filename content = do
   _ <- sendCommand scp $ Copy a b c d len filename
   sendContent scp content
 
-receiveDirect = do
-  confirm S.stdout
-  S.write (Just "") S.stdout
-  return $ SCP S.stdout S.stdin Nothing
+push :: SCP -> Word8 -> Word8 -> Word8 -> Word8 -> ByteString -> IO Bool
+push scp a b c d directory = sendCommand scp $ Push a b c d directory
+
+pop :: SCP -> IO Bool
+pop scp = sendCommand scp Pop
+
+receiveSsh :: String -> String -> String -> IO SCP
+receiveSsh user host path = receiveProcess "ssh"
+  [ "-q"
+  -- TODO actually use known_hosts and key check.
+  , "-o", "UserKnownHostsFile=/dev/null"
+  , "-o", "StrictHostKeyChecking=no"
+  , "-i", "/home/scp/.ssh/insecure_id_rsa"
+  , user ++ "@" ++ host
+  , "scp"
+  , "-f"
+  , path
+  ]
+
+receiveStd :: IO SCP
+receiveStd = do
+  let scp = SCP S.stdout S.stdin Nothing
+  startReceiving scp
+  return scp
+
+receiveDirect :: String -> IO SCP
+receiveDirect path = receiveProcess "scp" ["-f", path]
 
 readCommand :: SCP -> IO Command
 readCommand SCP{..} = do
@@ -76,8 +117,8 @@ doneReceiving SCP{..} = S.atEOF scpOut
 -- "Low-level" interface
 ----------------------------------------------------------------------
 
-startProcess :: FilePath -> [String] -> IO SCP
-startProcess cmd args = do
+sendProcess :: FilePath -> [String] -> IO SCP
+sendProcess cmd args = do
   (inp, out, h) <- runInteractiveProcess cmd args
   let scp = SCP inp out $ Just h
   _ <- startSending scp
@@ -90,14 +131,14 @@ startSending SCP{..} = do
 sendCommand :: SCP -> Command -> IO Bool
 sendCommand SCP{..} command = do
   let c = unparse command
-  putStrLn $ "Sending command " ++ C.unpack c
+  hPutStrLn stderr ("Sending command " ++ C.unpack c) >> hFlush stderr
   S.writeLazyByteString (L.fromChunks [c, "\n"]) scpIn
   S.write (Just "") scpIn
   getFeedback scpOut
 
 sendContent :: SCP -> InputStream ByteString -> IO Bool
 sendContent SCP{..} content = do
-  putStrLn "Sending content..."
+  hPutStrLn stderr "Sending content..." >> hFlush stderr
   S.supply content scpIn
   confirm scpIn
   S.write (Just "") scpIn
@@ -107,6 +148,18 @@ sendContent SCP{..} content = do
 stopSending :: SCP -> IO ()
 stopSending SCP{..} = S.write Nothing scpIn
 
+receiveProcess :: String -> [String] -> IO SCP
+receiveProcess cmd args = do
+  (inp, out, h) <- runInteractiveProcess cmd args
+  let scp = SCP inp out $ Just h
+  startReceiving scp
+  return scp
+
+startReceiving :: SCP -> IO ()
+startReceiving SCP{..} = do
+  confirm scpIn
+  S.write (Just "") scpIn
+
 getFeedback :: InputStream ByteString -> IO Bool
 getFeedback feedback = do
   i' <- S.readExactly 1 feedback
@@ -114,7 +167,7 @@ getFeedback feedback = do
     "\0" -> return True
     _ -> do
       msg <- sGetLine feedback
-      putStrLn $ "Bad feedback: " ++ C.unpack msg
+      hPutStrLn stderr ("Bad feedback: " ++ C.unpack msg) >> hFlush stderr
       return False
 
 confirm :: OutputStream ByteString -> IO ()

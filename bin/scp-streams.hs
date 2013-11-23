@@ -77,7 +77,7 @@ runCmd CmdScp{..} = do
   case (cmdScpReceive, cmdScpSend) of
     (True, True) -> error "-t and -f are exclusive."
 
-    (True, False) -> receiveLoop
+    (True, False) -> receiveStd >>= receiveLoop
 
     (False, True) -> whine S.stdout "Source not implemented."
 
@@ -86,7 +86,7 @@ runCmd CmdScp{..} = do
         error "Two or more filenames must be provided."
         -- If there is more than 2 filenames, the last one must be a directory.
 
-      let s = if cmdScpDirect then sendDirect else sendSsh
+      let s = if cmdScpDirect then sendDirect else sendSsh "TODO" "TODO"
           send = if cmdScpSelf then sendSelf else s
 
       -- Operate as a client.
@@ -101,9 +101,8 @@ runCmd CmdScp{..} = do
       _ <- stop scp
       return ()
 
-receiveLoop :: IO ()
-receiveLoop = do
-  scp <- receiveDirect
+receiveLoop :: SCP -> IO ()
+receiveLoop scp = do
   done <- doneReceiving scp
   if done
     then return ()
@@ -114,4 +113,4 @@ receiveLoop = do
       S.skipToEof is1
       getSha1 >>= hPutStrLn stderr . ("SHA1: " ++ ) . showDigest
       hFlush stderr
-      receiveLoop
+      receiveLoop scp
