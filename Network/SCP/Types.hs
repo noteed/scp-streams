@@ -2,6 +2,7 @@
 module Network.SCP.Types where
 
 import Control.Applicative ((<$>), (<|>), (<$))
+import Data.Attoparsec.ByteString (anyWord8)
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
@@ -16,11 +17,15 @@ data Command =
   -- ^ Enter directory. Permissions, directory name.
   | Pop
   -- ^ Exit directory.
+  | Abort ByteString
+  -- ^ This is not really a command, it is an error message received from the
+  -- client. For instance when the client sends a non-existing file and
+  -- discovers the fact only after having started the upload process.
   deriving Show
 
 -- e.g. C0755 567 run.sh
 commandParser :: Parser Command
-commandParser = copyParser <|> pushParser <|> popParser
+commandParser = copyParser <|> pushParser <|> popParser <|> errorParser
 
 copyParser :: Parser Command
 copyParser = do
@@ -45,6 +50,13 @@ pushParser = do
 popParser :: Parser Command
 popParser = Pop <$ string "E\n"
 
+errorParser :: Parser Command
+errorParser = do
+  _ <- anyWord8
+  msg <- takeWhile (/= '\n')
+  _ <- char '\n'
+  return $ Abort msg
+
 permissionsParser :: Parser (Word8, Word8, Word8, Word8)
 permissionsParser = do
   a <- read . (:[]) <$> digit
@@ -64,3 +76,4 @@ unparse command = case command of
     C.pack ['D', head $ show a, head $ show b, head $ show c, head $ show d]
       `B.append` " 0 " `B.append` filename
   Pop -> "E"
+  Abort msg -> 1 `B.cons` msg `B.append` "\n"
