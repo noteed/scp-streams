@@ -38,6 +38,15 @@ executable scp-streams
                        unix == 2.5.*
   ghc-options:         -Wall
 
+executable scp-broken-upload
+  hs-source-dirs:      bin
+  main-is:             scp-broken-upload.hs
+  build-depends:       base == 4.*,
+                       bytestring == 0.9.*,
+                       io-streams == 1.1.*,
+                       scp-streams
+  ghc-options:         -Wall
+
 test-suite run-tests
   hs-source-dirs: tests
   main-is: main.hs
