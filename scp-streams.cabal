@@ -1,5 +1,5 @@
 name:                scp-streams
-version:             0.0.0
+version:             0.1.0
 Cabal-Version:       >= 1.8
 synopsis:            An SCP protocol implementation.
 description:         An SCP protocol implementation.
@@ -33,8 +33,8 @@ executable scp-streams
                        bytestring == 0.9.*,
                        io-streams == 1.1.*,
                        scp-streams,
-                       SHA == 1.6.*,
-                       sha-streams,
+                       SHA >= 1.6.3,
+                       sha-streams >= 0.1,
                        unix == 2.5.*
   ghc-options:         -Wall
 
