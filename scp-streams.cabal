@@ -1,5 +1,5 @@
 name:                scp-streams
-version:             0.1.0
+version:             0.1.1
 Cabal-Version:       >= 1.8
 synopsis:            An SCP protocol implementation.
 description:         An SCP protocol implementation.
