@@ -34,9 +34,13 @@ copyParser = do
   _ <- char ' '
   size <- decimal
   _ <- char ' '
-  filename <- takeWhile (/= '\n') -- TODO enforce correct filename (no slash, no single dot, ...)
-  _ <- char '\n'
-  return $ Copy a b c d size filename
+  filename <- takeWhile (/= '\n')
+  -- I think a dot '.' is valid when scp -t is used with a target filename.
+  if '/' `C.elem` filename
+    then fail "Invalid filename"
+    else do
+      _ <- char '\n'
+      return $ Copy a b c d size filename
 
 pushParser :: Parser Command
 pushParser = do
