@@ -81,6 +81,7 @@ receiveSsh user host path = receiveProcess "ssh"
   , "-i", "/home/scp/.ssh/insecure_id_rsa"
   , user ++ "@" ++ host
   , "scp"
+  , "-r" -- TODO Only when pulling directories.
   , "-f"
   , path
   ]
