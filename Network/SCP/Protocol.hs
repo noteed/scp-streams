@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 module Network.SCP.Protocol where
@@ -130,14 +131,18 @@ startSending SCP{..} = do
 sendCommand :: SCP -> Command -> IO Bool
 sendCommand SCP{..} command = do
   let c = unparse command
+#ifdef SCP_DEBUG
   hPutStrLn stderr ("Sending command " ++ C.unpack c) >> hFlush stderr
+#endif
   S.writeLazyByteString (L.fromChunks [c, "\n"]) scpIn
   S.write (Just "") scpIn -- flush
   getFeedback scpOut
 
 sendContent :: SCP -> InputStream ByteString -> IO Bool
 sendContent SCP{..} content = do
+#ifdef SCP_DEBUG
   hPutStrLn stderr "Sending content..." >> hFlush stderr
+#endif
   S.supply content scpIn
   confirm scpIn
   b <- getFeedback scpOut
@@ -164,7 +169,9 @@ getFeedback feedback = do
     "\0" -> return True
     _ -> do
       msg <- sGetLine feedback
+#ifdef SCP_DEBUG
       hPutStrLn stderr ("Bad feedback: " ++ C.unpack msg) >> hFlush stderr
+#endif
       return False
 
 confirm :: OutputStream ByteString -> IO ()
