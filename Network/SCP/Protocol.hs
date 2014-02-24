@@ -179,9 +179,10 @@ confirm os = do
   S.writeLazyByteString "\0" os
   S.write (Just "") os -- flush
 
+-- | Send an error message. The other end will exit.
 whine :: OutputStream ByteString -> ByteString -> IO ()
 whine os msg = do
-  S.writeLazyByteString (L.fromChunks ["\x01", msg, "\n"]) os
+  S.writeLazyByteString (L.fromChunks ["\x02", msg, "\n"]) os
   S.write (Just "") os -- flush
 
 sGetLine :: InputStream ByteString -> IO ByteString
