@@ -86,7 +86,7 @@ runCmd CmdScp{..} = do
         error "Two or more filenames must be provided."
         -- If there is more than 2 filenames, the last one must be a directory.
 
-      let s = if cmdScpDirect then sendDirect else sendSsh "TODO" "TODO"
+      let s = if cmdScpDirect then sendDirect else sendSsh "TODO" "TODO" Nothing
           send = if cmdScpSelf then sendSelf else s
 
       -- Operate as a client.

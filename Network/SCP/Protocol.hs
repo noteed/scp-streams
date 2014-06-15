@@ -29,14 +29,15 @@ data SCP = SCP
 -- "Mid-level" interface
 ----------------------------------------------------------------------
 
-sendSsh :: String -> String -> FilePath -> IO SCP
-sendSsh user host target = sendProcess "ssh"
+sendSsh :: String -> String -> Maybe FilePath -> FilePath -> IO SCP
+sendSsh user host midentity target = sendProcess "ssh" $
   [ "-q"
   -- TODO actually use known_hosts and key check.
   , "-o", "UserKnownHostsFile=/dev/null"
   , "-o", "StrictHostKeyChecking=no"
-  , "-i", "/home/scp/.ssh/insecure_id_rsa"
-  , user ++ "@" ++ host
+  ] ++
+  maybe [] (\i -> ["-i", i]) midentity ++
+  [ user ++ "@" ++ host
   , "scp"
   , "-r" -- TODO Only when pushing directories.
          -- TODO Error out when receiving directories without -r.
