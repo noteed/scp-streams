@@ -111,6 +111,13 @@ contentAsInputStream SCP{..} len = do
     confirm scpIn) is
   return is'
 
+contentAsByteString :: SCP -> Int -> IO (ByteString)
+contentAsByteString SCP{..} len = do
+  bs <- S.readExactly (fromIntegral len) scpOut
+  _ <- getFeedback scpOut
+  confirm scpIn
+  return bs
+
 doneReceiving :: SCP -> IO Bool
 doneReceiving SCP{..} = S.atEOF scpOut
 

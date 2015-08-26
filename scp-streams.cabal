@@ -20,11 +20,11 @@ flag scp-debug
   default: False
 
 library
-  build-depends:       attoparsec == 0.10.*,
+  build-depends:       attoparsec,
                        base == 4.*,
-                       bytestring == 0.9.*,
-                       io-streams == 1.1.*,
-                       process == 1.1.*
+                       bytestring,
+                       io-streams,
+                       process
   exposed-modules:     Network.SCP.Protocol,
                        Network.SCP.Types
   if flag(scp-debug)
@@ -34,22 +34,22 @@ library
 executable scp-streams
   hs-source-dirs:      bin
   main-is:             scp-streams.hs
-  build-depends:       cmdargs == 0.9.*,
+  build-depends:       cmdargs,
                        base == 4.*,
-                       bytestring == 0.9.*,
-                       io-streams == 1.1.*,
+                       bytestring,
+                       io-streams,
                        scp-streams,
-                       SHA >= 1.6.3,
-                       sha-streams >= 0.1,
-                       unix == 2.5.*
+                       SHA,
+                       sha-streams,
+                       unix
   ghc-options:         -Wall
 
 executable scp-tool
   hs-source-dirs:      bin
   main-is:             scp-tool.hs
   build-depends:       base == 4.*,
-                       bytestring == 0.9.*,
-                       io-streams == 1.1.*,
+                       bytestring,
+                       io-streams,
                        scp-streams
   ghc-options:         -Wall
 
@@ -58,7 +58,7 @@ test-suite run-tests
   main-is: main.hs
   type: exitcode-stdio-1.0
   build-depends:       base == 4.*,
-                       bytestring == 0.9.*,
-                       io-streams == 1.1.*,
+                       bytestring,
+                       io-streams,
                        scp-streams
   ghc-options:         -Wall
