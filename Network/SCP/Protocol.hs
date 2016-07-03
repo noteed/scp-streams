@@ -5,16 +5,14 @@ module Network.SCP.Protocol where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString.Lazy as L
 import Data.Word (Word8)
 import System.Exit (ExitCode(..))
-import System.IO (hClose, hFlush, hPutStrLn, stderr)
+import System.IO (hClose)
 import System.IO.Streams (InputStream, OutputStream)
 import qualified System.IO.Streams as S
 import qualified System.IO.Streams.Attoparsec as S
-import System.Process (ProcessHandle)
-import System.Process (CreateProcess(..), StdStream(..))
+import System.Process (CreateProcess(..), ProcessHandle, StdStream(..))
 import qualified System.Process as P
 
 import Network.SCP.Types
