@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Network.SCP.Types where
 
-import Control.Applicative ((<$>), (<|>), (<$))
+import Control.Applicative ((<|>))
 import Data.Attoparsec.ByteString (anyWord8)
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString (ByteString)
